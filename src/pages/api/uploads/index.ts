@@ -17,18 +17,18 @@ type ResponseData = ApiResponse<string[], string>;
 const oneMegabyteInBytes = 1000000;
 const outputFolderName = './public/uploads';
 
-const upload = multer({
-  limits: { fileSize: oneMegabyteInBytes * 2 },
-  storage: multer.diskStorage({
-    destination: './public/uploads',
-    filename: (req, file, cb) => cb(null, file.originalname),
-  }),
+const upload = multer()
+// const upload = multer({
+//   limits: { fileSize: oneMegabyteInBytes * 2 },
+//   storage: multer.diskStorage({
+//     destination: './public/uploads',
+//     filename: (req, file, cb) => cb(null, file.originalname),
+//   }),
   /*fileFilter: (req, file, cb) => {
     const acceptFile: boolean = ['image/jpeg', 'image/png'].includes(file.mimetype);
 
     cb(null, acceptFile);
   },*/
-});
 
 const apiRoute = nextConnect({
   onError(error, req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) {
@@ -42,10 +42,7 @@ const apiRoute = nextConnect({
 apiRoute.use(upload.array('theFiles'));
 
 apiRoute.post((req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) => {
-  const filenames = fs.readdirSync(outputFolderName);
-  const images = filenames.map((name) => name);
-  var workbook = XLSX.readFile(outputFolderName+'/'+images[0]);
-  console.log(workbook)
+  const workbook = XLSX.read(req.files[0].buffer, { type: 'array' });
   var sheet_name_list = workbook.SheetNames;
   const dataset = <Ticket[]>XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
   
