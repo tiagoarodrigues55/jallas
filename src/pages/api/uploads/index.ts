@@ -3,7 +3,7 @@ import nextConnect from 'next-connect';
 import multer from 'multer';
 import fs from 'fs';
 import { ApiResponse } from '../../../models/ApiResponse';
-
+import XLSX from 'xlsx'
 interface NextConnectApiRequest extends NextApiRequest {
   files: Express.Multer.File[];
 }
@@ -39,8 +39,55 @@ apiRoute.use(upload.array('theFiles'));
 apiRoute.post((req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) => {
   const filenames = fs.readdirSync(outputFolderName);
   const images = filenames.map((name) => name);
-
-  res.status(200).json({ data: images });
+  var workbook = XLSX.readFile(outputFolderName+'/'+images[0]);
+  var sheet_name_list = workbook.SheetNames;
+  const dataset = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
+  
+  // Quando cai a primeira parcela?
+  // No mês seguinte aparece os pedidos parcelados dos últimos relatórios?
+  // Vão querer um banco de dados próprio?
+  
+  
+  function sanitizePrice(price){
+    return Number(price['Valor líquido'].toString().replace('.', '').replace(',','.'))
+  }
+  const totalSold = dataset.map(ticket => sanitizePrice(ticket))
+  .reduce(function(soma, i) {
+    return soma + i;
+  });
+  
+  const avista = dataset.filter(ticket=> ticket['Status do recebível'] === "Pago" ? true : false).map(ticket => sanitizePrice(ticket))
+  .reduce(function(soma, i) {
+    return soma + i;
+  });
+  
+  const parcelasPagas = dataset
+    .filter(ticket=> ticket['Status do recebível'] !== "Pago" ? true : false)
+    .map(ticket => sanitizePrice(ticket)/(Number(ticket['Número de parcelas'])||1))
+    .reduce(function(soma, i) {
+      return soma + i;
+    });
+  
+  const aReceber = dataset
+    .filter(ticket=> ticket['Status do recebível'] !== "Pago" ? true : false)
+    .map(ticket => sanitizePrice(ticket) - (sanitizePrice(ticket))/(Number(ticket['Número de parcelas'])||1))
+    .reduce(function(soma, i) {
+      return soma + i;
+    });
+  
+  const aReceberPorMes = [1, 2].map(i => dataset
+    .filter(ticket=> Number(ticket['Número de parcelas']) > i ? true : false)
+    .map(ticket => sanitizePrice(ticket)/(Number(ticket['Número de parcelas'])))
+    .reduce(function(soma, i) {
+      return soma + i;
+    }).toFixed(2)
+  );
+  res.status(200).json({ data: [  `Total vendido: ${totalSold.toFixed(2)}`,
+  `Total a vista: ${avista.toFixed(2)}`,
+  `Parcelas pagas: ${parcelasPagas.toFixed(2)}`,
+  `Recebido no mês: ${(avista + parcelasPagas).toFixed(2)}`,
+  `A Receber: ${aReceber.toFixed(2)}`,
+  `Próximos pagamentos: ${aReceberPorMes[0]}, ${aReceberPorMes[1]}`] });
 });
 
 export const config = {
