@@ -43,10 +43,6 @@ apiRoute.post((req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) =
   var sheet_name_list = workbook.SheetNames;
   const dataset = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
   
-  // Quando cai a primeira parcela?
-  // No mês seguinte aparece os pedidos parcelados dos últimos relatórios?
-  // Vão querer um banco de dados próprio?
-  
   
   function sanitizePrice(price){
     return Number(price['Valor líquido'].toString().replace('.', '').replace(',','.'))
