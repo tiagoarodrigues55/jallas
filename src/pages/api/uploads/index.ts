@@ -7,6 +7,11 @@ import XLSX from 'xlsx'
 interface NextConnectApiRequest extends NextApiRequest {
   files: Express.Multer.File[];
 }
+interface Ticket {
+  'Valor líquido': Number,
+  'Status do recebível': String,
+  'Número de parcelas' : Number
+}
 type ResponseData = ApiResponse<string[], string>;
 
 const oneMegabyteInBytes = 1000000;
@@ -41,10 +46,10 @@ apiRoute.post((req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) =
   const images = filenames.map((name) => name);
   var workbook = XLSX.readFile(outputFolderName+'/'+images[0]);
   var sheet_name_list = workbook.SheetNames;
-  const dataset = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
+  const dataset = <Ticket[]>XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
   
   
-  function sanitizePrice(price){
+  function sanitizePrice(price : {'Valor líquido' : Number}){
     return Number(price['Valor líquido'].toString().replace('.', '').replace(',','.'))
   }
   const totalSold = dataset.map(ticket => sanitizePrice(ticket))
@@ -78,7 +83,7 @@ apiRoute.post((req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) =
       return soma + i;
     }).toFixed(2)
   );
-  
+
   res.status(200).json({ data: [  `Total vendido: ${totalSold.toFixed(2)}`,
   `Total a vista: ${avista.toFixed(2)}`,
   `Parcelas pagas: ${parcelasPagas.toFixed(2)}`,
