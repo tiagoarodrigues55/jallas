@@ -1,30 +1,27 @@
 import React from 'react';
-import Link from 'next/link';
-import { Routes } from '../../../constants/Routes';
-
+import { UiFileInputButton } from '../../ui/ui-file-input-button/UiFileInputButton';
+import { uploadFileRequest } from '../../../domains/upload/upload.services';
+import {useState, useEffect} from 'react'
 interface IProps {
   testId?: string;
 }
 
 export const IndexPage: React.FC<IProps> = (props) => {
-  const { testId = IndexPage.displayName } = props;
+  const [data, setData] = useState([]) 
+  const onChange = async (formData: FormData) => {
+    const response = await uploadFileRequest(formData, (event) => {
+      console.log(`Current progress:`, Math.round((event.loaded * 100) / event.total));
+    });
+    setData(response.data)
+    console.log('response', response);
+  };
 
   return (
     <div>
-      <h1>
-        Hello Next.js{' '}
-        <span
-          role="img"
-          aria-label="hand waving"
-        >
-          👋
-        </span>
-      </h1>
-      <p>
-        <Link href={Routes.About}>
-          <a data-testid={`${testId}_about-button`}>About</a>
-        </Link>
-      </p>
+      <div>
+        <UiFileInputButton label="Upload Single File" uploadFileName="theFiles" onChange={onChange} />
+      </div>
+      {data?.map(info => <p>{info}</p>)}
     </div>
   );
 };
