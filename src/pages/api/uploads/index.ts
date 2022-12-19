@@ -78,6 +78,7 @@ apiRoute.post((req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) =
       return soma + i;
     }).toFixed(2)
   );
+  
   res.status(200).json({ data: [  `Total vendido: ${totalSold.toFixed(2)}`,
   `Total a vista: ${avista.toFixed(2)}`,
   `Parcelas pagas: ${parcelasPagas.toFixed(2)}`,
