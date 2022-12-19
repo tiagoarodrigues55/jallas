@@ -45,6 +45,7 @@ apiRoute.post((req: NextConnectApiRequest, res: NextApiResponse<ResponseData>) =
   const filenames = fs.readdirSync(outputFolderName);
   const images = filenames.map((name) => name);
   var workbook = XLSX.readFile(outputFolderName+'/'+images[0]);
+  console.log(workbook)
   var sheet_name_list = workbook.SheetNames;
   const dataset = <Ticket[]>XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]])
   
