@@ -14,6 +14,7 @@ export const IndexPage: React.FC<IProps> = (props) => {
     });
 
     setData(response.data || [])
+    
     console.log('response', response);
   };
 
