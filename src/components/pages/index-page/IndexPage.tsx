@@ -7,13 +7,13 @@ interface IProps {
 }
 
 export const IndexPage: React.FC<IProps> = (props) => {
-  const [data, setData] = useState([]) 
+  const [data, setData] = useState(['']) 
   const onChange = async (formData: FormData) => {
     const response = await uploadFileRequest(formData, (event) => {
       console.log(`Current progress:`, Math.round((event.loaded * 100) / event.total));
     });
 
-    setData(response.data)
+    setData(response.data || [])
     console.log('response', response);
   };
 
